@@ -34,9 +34,8 @@ typedef struct ThreadPool
 	int minNum;					//最少线程数
 	int busyNum;				//忙线程数
 	int liveNum;				//存活的线程个数
-	int exitNum					//待销毁的线程个数		
+	int exitNum;		//待销毁的线程个数		
 	
-
 	//互斥锁  条件变量
 	pthread_mutex_t mutexPool;   //锁住整个线程池
 	pthread_mutex_t mutexBusy;	 //锁住忙线程
