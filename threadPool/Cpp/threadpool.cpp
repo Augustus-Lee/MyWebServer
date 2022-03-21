@@ -29,7 +29,7 @@ void TaskQueue::addTask(callback func, void* arg)
 {
 	pthread_mutex_lock(&m_mutex);
 	Task task;
-	task.func = func;
+	task.function = func;
 	task.arg = arg;
 	m_Queue.push(task);
 	pthread_mutex_unlock(&m_mutex);
@@ -84,8 +84,8 @@ ThreadPool::ThreadPool(int minNum, int maxNum)
 
 		for(int i = 0; i < minNum; i++)
 		{
-			pthread_create(&m_manageThread[i], NULL, workFunc, this);
-			cout << "create thread ID: " << to_string(m_manageThread[i]) << endl;
+			pthread_create(&m_workThreadIDS[i], NULL, workFunc, this);
+			cout << "create thread ID: " <<to_string((long int)m_workThreadIDS[i]) << endl;
 		}
 		
 	} while (0);
@@ -120,7 +120,7 @@ void* ThreadPool::manageFunc(void* arg)
 				if(pool->m_workThreadIDS[i] == 0)
 				{
 					pthread_create(&pool->m_workThreadIDS[i], NULL, workFunc, pool);
-					pool->liveNum++;
+					pool->m_liveNum++;
 					count++;
 				}
 
@@ -142,9 +142,8 @@ void* ThreadPool::manageFunc(void* arg)
 				pthread_cond_signal(&pool->m_isEmpty);
 			}
 		}
-
-		return nullptr;
 	}
+	return nullptr;
 }
 
 
@@ -152,14 +151,14 @@ void* ThreadPool::workFunc(void* arg)
 {
 	ThreadPool* pool = static_cast<ThreadPool*>(arg);
 
-	while(TRUE)
+	while(true)
 	{
 		pthread_mutex_lock(&pool->m_mutex);
 		//任务队列为空则阻塞
-		while(pool->TaskQueue->getTaskNum() == 0 && !pool->m_shutdown)
+		while(pool->m_taskQueue->getTaskNum() == 0 && !pool->m_shutdown)
 		{
 			//任务队列为空 阻塞工作线程消费
-			pthread_condt_wait(&pool->m_isEmpty, &pool->m_mutex);
+			pthread_cond_wait(&pool->m_isEmpty, &pool->m_mutex);
 			//若需要销毁线程
 			if(pool->m_exitNum > 0)
 			{
@@ -185,12 +184,12 @@ void* ThreadPool::workFunc(void* arg)
 		pool->m_busyNum++;
 		pthread_mutex_unlock(&pool->m_mutex);
 
-		cout << "thread: " << to_string(pthread_self()) << " start working..\n";
+		cout << "thread: " << to_string((long int)pthread_self()) << " start working..\n";
 		//函数指针
-		task.func(task.arg);
+		task.function(task.arg);
 		delete task.arg;
 		task.arg = nullptr;
-		cout << "thread: " << to_string(pthread_self()) << " end working..\n";
+		cout << "thread: " << to_string((long int)pthread_self()) << " end working..\n";
 
 		pthread_mutex_lock(&pool->m_mutex);
 		pool->m_busyNum--;
@@ -210,19 +209,19 @@ void ThreadPool::threadPoolAdd(Task task)
 	//任务队列中有锁
 	m_taskQueue->addTask(task);
 	//唤醒工作线程
-	pthread_condt_signal(&m_isEmpty);
+	pthread_cond_signal(&m_isEmpty);
 }
 
 
 ThreadPool::~ThreadPool()
 {
-	m_shutdown = TRUE;
+	m_shutdown = true;
 	//回收管理者线程
 	pthread_join(m_manageThread, NULL);
 	//唤醒工作线程
 	for(int i = 0; i < m_liveNum; i++)
 	{
-		pthread_condt_signal(&m_isEmpty);
+		pthread_cond_signal(&m_isEmpty);
 	}
 
 	if(m_taskQueue) delete m_taskQueue;
@@ -241,7 +240,7 @@ void ThreadPool::threadExit()
 		if(m_workThreadIDS[i] == tid)
 		{
 			m_workThreadIDS[i] = 0;
-			cout << "threadExit():thread " << to_string(tid) << "has destroy!\n";
+			cout << "threadExit():thread " << to_string((long int)tid) << "has destroy!\n";
 			break;
 		}
 	}

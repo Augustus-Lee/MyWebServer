@@ -3,9 +3,10 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <cstring>
+#include <string>
 #include <unistd.h>
 #include <pthread.h>
+#include <cstdio>
 #include <queue>
 
 using namespace std;
@@ -28,7 +29,7 @@ public:
 		function = func;
 		this->arg = arg;
 	}
-private:
+
 	callback function;
 	void* arg;
 };
@@ -102,6 +103,6 @@ private:
 	pthread_mutex_t m_mutex;
 	pthread_cond_t m_isEmpty;
 
-	bool m_shutdown = FALSE;//是否关闭线程池 1是 0否
+	bool m_shutdown = false;//是否关闭线程池 1是 0否
 };
 #endif //_THREADPOOL_H

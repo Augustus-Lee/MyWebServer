@@ -56,10 +56,11 @@ ThreadPool* threadPoolCreate(int minNum, int maxNum, int queueCapacity)
 
 		//创建线程
 		pthread_create(&pool->manageThread, NULL, manageFunc, pool);
-
-		for(int i = 0; i <= minNum; i++)
+		printf("manageFunc start!\n");
+		for(int i = 0; i < minNum; i++)
 		{
 			pthread_create(&pool->workThreadIDs[i], NULL, workFunc, pool);
+			printf("workFunc start!\n");
 		}
 
 		return pool;
@@ -211,25 +212,30 @@ void threadPoolAdd(ThreadPool* pool, void (*func)(void*), void* arg)
 {
 	//临界区 锁住整个线程池
 	pthread_mutex_lock(&pool->mutexPool);
+	printf("threadPoolAdd start!\n");
 	//任务队列已满时且线程池每销毁时  
-	if(pool->queueSize == pool->queueCapacity || !pool->shutdown)
+	if(pool->queueSize == pool->queueCapacity && !pool->shutdown)
 	{
 		//阻塞生产者线程
+		printf("threadPoolAdd end3!\n");
 		pthread_cond_wait(&pool->isFull, &pool->mutexPool);
 	}
 
 	if(pool->shutdown)
 	{
+		printf("threadPoolAdd end4!\n");
 		pthread_mutex_unlock(&pool->mutexPool);
 		return;
 	}
 
+	printf("threadPoolAdd end1!\n");
 	//循环数组   添加  rear + 1 % capacity
 	pool->taskQ[pool->queueRear].function = func;
 	pool->taskQ[pool->queueRear].arg = arg;
 	pool->queueRear = (pool->queueRear + 1) % pool->queueCapacity;
 	pool->queueSize++;
 
+	printf("threadPoolAdd end2!\n");
 	pthread_cond_signal(&pool->isEmpty);
 	pthread_mutex_unlock(&pool->mutexPool);
 

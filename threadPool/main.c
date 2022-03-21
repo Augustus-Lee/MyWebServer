@@ -27,7 +27,7 @@ int main()
         threadPoolAdd(pool, taskFunc, num);
     }
     //执行10s
-    sleep(20);
+    sleep(10);
     threadPoolDestory(pool);
 
     return 0;
