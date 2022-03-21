@@ -85,7 +85,7 @@ ThreadPool::ThreadPool(int minNum, int maxNum)
 		for(int i = 0; i < minNum; i++)
 		{
 			pthread_create(&m_workThreadIDS[i], NULL, workFunc, this);
-			cout << "create thread ID: " <<to_string((long int)m_workThreadIDS[i]) << endl;
+			cout << "create thread ID: " << m_workThreadIDS[i] << endl;
 		}
 		
 	} while (0);
@@ -184,12 +184,12 @@ void* ThreadPool::workFunc(void* arg)
 		pool->m_busyNum++;
 		pthread_mutex_unlock(&pool->m_mutex);
 
-		cout << "thread: " << to_string((long int)pthread_self()) << " start working..\n";
+		cout << "thread: " << pthread_self() << " start working..\n";
 		//函数指针
 		task.function(task.arg);
 		delete task.arg;
 		task.arg = nullptr;
-		cout << "thread: " << to_string((long int)pthread_self()) << " end working..\n";
+		cout << "thread: " << pthread_self() << " end working..\n";
 
 		pthread_mutex_lock(&pool->m_mutex);
 		pool->m_busyNum--;
@@ -240,7 +240,7 @@ void ThreadPool::threadExit()
 		if(m_workThreadIDS[i] == tid)
 		{
 			m_workThreadIDS[i] = 0;
-			cout << "threadExit():thread " << to_string((long int)tid) << "has destroy!\n";
+			cout << "threadExit():thread " << tid << "has destroy!\n";
 			break;
 		}
 	}
