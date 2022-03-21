@@ -10,6 +10,7 @@
 
 int main()
 {
+	ThreadPool* pool = new ThreadPool(10, 100);
 
 
 	
