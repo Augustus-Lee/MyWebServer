@@ -1,7 +1,6 @@
 #ifndef _THREADPOOL_H
 #define _THREADPOOL_H
 
-#include <iostream>
 #include <cstdlib>
 #include <string>
 #include <unistd.h>
@@ -15,6 +14,7 @@ using namespace std;
 //任务类
 //函数指针 
 using callback = void(*)(void*);
+template <class T>
 class Task
 {
 public:
@@ -27,15 +27,16 @@ public:
 	Task(callback func, void* arg)
 	{
 		function = func;
-		this->arg = arg;
+		this->arg = (T*)arg;
 	}
 
 	callback function;
-	void* arg;
+	T* arg;
 };
 
 
 //任务队列类
+template <class T>
 class TaskQueue
 {
 public:
@@ -43,11 +44,11 @@ public:
 	~TaskQueue();
 
 	//添加任务
-	void addTask(Task& task);
+	void addTask(Task<T> task);
 	void addTask(callback func, void* arg);
 
 	//取出任务
-	Task takeTask();
+	Task<T> takeTask();
 
 	//获取任务当前数量
 	inline int getTaskNum()
@@ -57,12 +58,13 @@ public:
 
 private:
 	pthread_mutex_t m_mutex;//互斥锁
-	queue<Task> m_Queue;//任务队列
+	queue<Task<T> > m_Queue;//任务队列
 
 };
 
 
 //线程池类
+template <class T>
 class ThreadPool
 {
 public:
@@ -73,7 +75,7 @@ public:
 	~ThreadPool();
 
 	//添加任务
-	void threadPoolAdd(Task task);
+	void threadPoolAdd(Task<T> task);
 
 private:
 	//静态成员函数没有this指针  故不会作为函数参数传入
@@ -88,7 +90,7 @@ private:
 
 private:
 	//任务队列
-	TaskQueue* m_taskQueue;
+	TaskQueue<T>* m_taskQueue;
 	
 	//线程池
 	pthread_t m_manageThread;

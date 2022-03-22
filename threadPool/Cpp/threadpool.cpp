@@ -1,44 +1,46 @@
 #include "threadpool.h"
+#include <iostream>
 
 //一次性销毁/添加都为两个
 const int NUMBER = 2;
 
 
 //TaskQueue
-TaskQueue::TaskQueue()
+template <class T>
+TaskQueue<T>::TaskQueue()
 {
 	pthread_mutex_init(&m_mutex, NULL);
 }
 
-
-TaskQueue::~TaskQueue()
+template <class T>
+TaskQueue<T>::~TaskQueue()
 {
 	pthread_mutex_destroy(&m_mutex);
 }
 
-
-void TaskQueue::addTask(Task& task)
+template <class T>
+void TaskQueue<T>::addTask(Task<T> task)
 {
 	pthread_mutex_lock(&m_mutex);
 	m_Queue.push(task);
 	pthread_mutex_unlock(&m_mutex);
 }
 
-
-void TaskQueue::addTask(callback func, void* arg)
+template <class T>
+void TaskQueue<T>::addTask(callback func, void* arg)
 {
 	pthread_mutex_lock(&m_mutex);
-	Task task;
+	Task<T> task;
 	task.function = func;
 	task.arg = arg;
 	m_Queue.push(task);
 	pthread_mutex_unlock(&m_mutex);
 }
 
-
-Task TaskQueue::takeTask()
+template <class T>
+Task<T> TaskQueue<T>::takeTask()
 {
-	Task task;
+	Task<T> task;
 	pthread_mutex_lock(&m_mutex);
 	if(m_Queue.size() > 0)
 	{
@@ -51,10 +53,11 @@ Task TaskQueue::takeTask()
 
 
 //threadpool
-ThreadPool::ThreadPool(int minNum, int maxNum)
+template <class T>
+ThreadPool<T>::ThreadPool(int minNum, int maxNum)
 {
 	//实例化任务队列
-	m_taskQueue = new TaskQueue;
+	m_taskQueue = new TaskQueue<T>;
 
 	do
 	{
@@ -85,22 +88,22 @@ ThreadPool::ThreadPool(int minNum, int maxNum)
 		for(int i = 0; i < minNum; i++)
 		{
 			pthread_create(&m_workThreadIDS[i], NULL, workFunc, this);
-			cout << "create thread ID: " << m_workThreadIDS[i] << endl;
+			cout << "create pthread ID: " << m_workThreadIDS[i] << endl;
 		}
 		
 	} while (0);
 
 }
 
-
-void* ThreadPool::manageFunc(void* arg)
+template <class T>
+void* ThreadPool<T>::manageFunc(void* arg)
 {
 	ThreadPool* pool = static_cast<ThreadPool*>(arg);
 
 	//线程池未关闭时
 	while(!pool->m_shutdown)
 	{
-		sleep(3);
+		sleep(5);
 		pthread_mutex_lock(&pool->m_mutex);
 		int liveNum = pool->m_liveNum;
 		int queueSize = pool->m_taskQueue->getTaskNum();
@@ -146,8 +149,8 @@ void* ThreadPool::manageFunc(void* arg)
 	return nullptr;
 }
 
-
-void* ThreadPool::workFunc(void* arg)
+template <class T>
+void* ThreadPool<T>::workFunc(void* arg)
 {
 	ThreadPool* pool = static_cast<ThreadPool*>(arg);
 
@@ -180,16 +183,16 @@ void* ThreadPool::workFunc(void* arg)
 			pool->threadExit();
 		}
 		//从任务队列中取出一个任务
-		Task task = pool->m_taskQueue->takeTask();
+		Task<T> task = pool->m_taskQueue->takeTask();
 		pool->m_busyNum++;
 		pthread_mutex_unlock(&pool->m_mutex);
 
-		cout << "thread: " << pthread_self() << " start working..\n";
+		cout << "pthread: " << pthread_self() << " start working..\n";
 		//函数指针
 		task.function(task.arg);
 		delete task.arg;
 		task.arg = nullptr;
-		cout << "thread: " << pthread_self() << " end working..\n";
+		cout << "pthread: " << pthread_self() << " end working..\n";
 
 		pthread_mutex_lock(&pool->m_mutex);
 		pool->m_busyNum--;
@@ -199,8 +202,8 @@ void* ThreadPool::workFunc(void* arg)
 	return nullptr;
 }
 
-
-void ThreadPool::threadPoolAdd(Task task)
+template <class T>
+void ThreadPool<T>::threadPoolAdd(Task<T> task)
 {
 	if(m_shutdown)
 	{
@@ -212,8 +215,8 @@ void ThreadPool::threadPoolAdd(Task task)
 	pthread_cond_signal(&m_isEmpty);
 }
 
-
-ThreadPool::~ThreadPool()
+template <class T>
+ThreadPool<T>::~ThreadPool()
 {
 	m_shutdown = true;
 	//回收管理者线程
@@ -224,15 +227,22 @@ ThreadPool::~ThreadPool()
 		pthread_cond_signal(&m_isEmpty);
 	}
 
-	if(m_taskQueue) delete m_taskQueue;
-	if(m_workThreadIDS) delete[] m_workThreadIDS;
+	if(m_taskQueue) 
+	{
+		delete m_taskQueue;
+		m_taskQueue = nullptr;
+	}
+	if(m_workThreadIDS)
+	{
+		delete[] m_workThreadIDS;
+	} 
 	pthread_mutex_destroy(&m_mutex);
 	pthread_cond_destroy(&m_isEmpty);
 
 }
 
-
-void ThreadPool::threadExit()
+template <class T>
+void ThreadPool<T>::threadExit()
 {
 	pthread_t tid = pthread_self();
 	for(int i = 0; i <= m_maxNum; i++)
@@ -240,7 +250,8 @@ void ThreadPool::threadExit()
 		if(m_workThreadIDS[i] == tid)
 		{
 			m_workThreadIDS[i] = 0;
-			cout << "threadExit():thread " << tid << "has destroy!\n";
+			cout << "threadExit():pthread " << tid << "has destroy!\n";
+			sleep(1);
 			break;
 		}
 	}

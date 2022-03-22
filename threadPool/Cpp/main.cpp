@@ -4,6 +4,7 @@
 //--------    Description: Cpp threadpool
 //----------------------------------------
 #include "threadpool.h"
+#include "threadpool.cpp"
 
 void taskFunc(void* arg)
 {
@@ -15,13 +16,13 @@ void taskFunc(void* arg)
 
 int main()
 {
-	ThreadPool pool(10, 100);
+	ThreadPool<int> pool(5, 20);
 	for (int i = 0; i < 100; i++)
 	{
 		int* num = new int(i + 100);
-		pool.threadPoolAdd(Task(taskFunc, num));
+		pool.threadPoolAdd(Task<int>(taskFunc, num));
 	}
 	
-	sleep(20);
+	sleep(10);
 	return 0;
 }
