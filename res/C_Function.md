@@ -5,7 +5,8 @@
 1.
 	char *strpbrk(char *str1, char *str2)
   /*
-  strpbrk( szURL, " \t" )
+  char *text = "POST / HTTP1.1";
+  char *url = strpbrk(text, " \t"); //url = " / HTTP1.1"
 	参数说明：str1待比较的字符串，str2为指定被搜索的字符串。
 	函数功能：比较字符串str1和str2中是否有相同的字符，如果有，则返回该字符在str1中的位置的指针。
 	*/
@@ -96,6 +97,8 @@ flags：指定映射对象的类型，映射选项和映射页是否可以共享
 MAP_PRIVATE 建立一个写入时拷贝的私有映射，内存区域的写入不会影响到原文件
 
 fd：有效的文件描述符，一般是由open()函数返回
+
+mmap用于申请一段内存空间，munmap则是释放由mmap申请的内存空间。
 */
 ```
 
@@ -126,5 +129,29 @@ iov为前述io向量机制结构体iovec
 iovcnt为结构体的个数
 若成功则返回已写的字节数，若出错则返回-1。writev以顺序iov[0]，iov[1]至iov[iovcnt-1]从缓冲区中聚集输出数据。writev返回输出的字节总数，通常，它应等于所有缓冲区长度之和。
 */
+```
+
+##### 10.printf系列
+
+```cpp
+int printf(const char *format, ...); //输出到标准输出
+int fprintf(FILE *stream, const char *format, ...); //输出到文件
+int sprintf(char *str, const char *format, ...); //输出到字符串str中
+int snprintf(char *str, size_t size, const char *format, ...); //按size大小输出到字符串str中
+//-------------------
+//以下函数功能与上面的一一对应相同，只是在函数调用时，把上面的...对应的一个个变量用va_list调用所替代。在函数调用前ap要通过va_start()宏来动态获取。
+int vprintf(const char *format, va_list ap);
+int vfprintf(FILE *stream, const char *format, va_list ap);
+int vsprintf(char *str, const char *format, va_list ap);
+int vsnprintf(char *str, size_t size, const char *format, va_li
+/*
+可变参数列表va_list宏说明:
+void va_start(va_list ap, last);
+void va_end(va_list ap);
+1.va_start与va_end是成对被调用的
+2.开始的时候被调用va_start，获得各输出变量地址
+3.结束的时候被调用va_end，释放相应的资源
+*/
+
 ```
 
