@@ -47,14 +47,16 @@ char *strchr(const char *str, int c)
   const char ch = '.';
   char *ret;
   ret = strchr(str, ch);// ret:.runoob.com
-
+*/
+  
 	char *strrchr(const char *s, int c);
+	/*
 	在参数 str 所指向的字符串中搜索 最后一次 出现字符 c（一个无符号字符）的位置
   上述例子中 ret-->.com
   */
 ```
 
-5.strcat
+##### 5.strcat
 
 ```cpp
 char *strcat(char *dest, const char *src)
@@ -153,5 +155,42 @@ void va_end(va_list ap);
 3.结束的时候被调用va_end，释放相应的资源
 */
 
+```
+
+##### 11.fputs
+
+```cpp
+int fputs(const char *str, FILE *stream);
+/*
+把字符串写入到指定的流 stream 中，但不包括空字符。
+str，一个数组，包含了要写入的以空字符终止的字符序列。
+
+stream，指向FILE对象的指针，该FILE对象标识了要被写入字符串的流。
+*/
+```
+
+##### 12.__VA_ARGS__
+
+```cpp
+/*
+可变参数宏__VA_ARGS__
+__VA_ARGS__是一个可变参数的宏，定义时宏定义中参数列表的最后一个参数为省略号，在实际使用时会发现有时会加##，有时又不加。
+*/
+//搭配va_list的format使用
+#define my_print2(format, ...) printf(format, __VA_ARGS__)  
+#define my_print3(format, ...) printf(format, ##__VA_ARGS__)
+/*__VA_ARGS__宏前面加上##的作用在于，当可变参数的个数为0时，这里printf参数列表中的的##会把前面多余的","去掉，否则会编译出错，建议使用后面这种，使得程序更加健壮。
+#把宏参数变为一个字符串
+##把两个宏参数贴合在一起
+*/
+```
+
+##### 13.fflush
+
+```cpp
+int fflush(FILE *stream);
+/*
+fflush()会强迫将缓冲区内的数据写回参数stream 指定的文件中，如果参数stream 为NULL，fflush()会将所有打开的文件数据更新。
+*/
 ```
 
