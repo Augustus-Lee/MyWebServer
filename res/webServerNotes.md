@@ -554,7 +554,7 @@ int epoll_create(int size);
 //该函数用于操作内核事件表监控的文件描述符上的事件：注册、修改、删除
 int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
   
-//该函数用于等待所监控文件描述符上有事件的产生，返回就绪的文件描述符个数
+//在一段超时时间内等待一组文件描述符上的事件，成功则返回就绪文件描述的个数
 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
 ```
 
@@ -588,7 +588,7 @@ int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout
 
 >1. select和poll的文件描述符是在**用户态**加入文件描述符集合的，每次调用都需要将整个集合拷贝至内核态；而epoll的文件描述符维护在**内核态**，每次添加文件描述符的时候都需要执行一次系统调用。
 >2. select使用线性表描述文件描述符集合，文件描述符有上限；poll用链表描述，无上限；epoll则用红黑树描述文件描述符集合，且也没有上限。
->3. select和poll需要通过遍文件描述符集合，判断哪个文件描述符上有时间发生；而epoll会维护一个维护一个ready list，会将就绪事件添加至list，每次调用epol_wait的时候，仅观察list是否有数据即可。
+>3. select和poll需要通过遍历整个文件描述符集合，判断哪个文件描述符上有事件发生；而epoll会维护一个ready list，会将就绪事件添加至list，每次调用epol_wait的时候，仅观察list是否有数据即可。
 
 ##### 应用场景
 
@@ -940,8 +940,16 @@ Linux下的信号采用异步处理机制，信号处理函数与当前进程是
 #### 3.并发模型相关
 
 - 简单说一下服务器使用的并发模型？
+
 - reactor、proactor、主从reactor模型的区别？
+
 - 你用了epoll，说一下为什么用epoll，还有其他复用方式吗？区别是什么？
+
+  epoll的效率更高，故使用Epoll
+
+  1. select：文件描述符数量受限，默认最多为1024；采用线性表描述文件描述符集合，需要以轮询的方式去访问文件描述符，判断哪个文件描述符上有事件发生；工作在效率较低的LT模式下
+  2. poll：突破了文件描述符数量的限制；采用链表描述文件描述符集合，也是轮询的方式访问文件描述符表；工作在效率较低的LT模式下
+  3. epoll：无描述符数量限制；使用ET和LT模式；采用红黑树描述文件描述符集合，会维护一个就绪链表，会将就绪事件添加至list，则调用epoll_wait时仅需判断list是否有数据，极大的提高了应用程序索引就绪文件描述符的效率
 
 #### 4.HTTP报文解析相关
 

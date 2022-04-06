@@ -194,3 +194,31 @@ fflush()会强迫将缓冲区内的数据写回参数stream 指定的文件中�
 */
 ```
 
+##### 14.sendfile
+
+```cpp
+/*
+sendfile函数直接在两个文件描述符之间传递数据（完全在内核中操作），从而避免了内核缓冲区与用户缓冲区的数据拷贝，效率很高，称之为零拷贝
+*/
+ssize_t sendfile(int out_fd, int in_fd, off_t* offset, size_t count);
+//out_fd是待读出内容的文件描述符，in_fd是待写入文件的文件描述符 in_fd必须指向真实的文件
+//offset参数指定从读入文件流的哪个位置开始读，如果为NULL，则使用读入文件的默认起始位置
+//count为out_fd与in_fd之间传输的字节数大小
+```
+
+##### 15.recv/send(仅TCP适用)
+
+```cpp
+//用于TCP数据流读写的系统调用
+ssize_t recv(int socket, void *buffer, size_t length, int flags);
+/*
+	recv是读取socket上的数据，buf和len分别是缓冲区的位置和大小，flags一般默认为0
+	就是将socket上的数据读进缓冲区
+*/
+ssize_t send(int socket, const void *buffer, size_t length, int flags);
+/*
+	recv是将数据写入进socket，即将缓冲区的数据写入至socket
+*/
+
+```
+
