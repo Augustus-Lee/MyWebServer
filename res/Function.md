@@ -222,3 +222,29 @@ ssize_t send(int socket, const void *buffer, size_t length, int flags);
 
 ```
 
+##### 16.fcntl
+
+```cpp
+int fcntl(int fildes, int cmd, ...);
+/*
+fd是被操作的文件描述符
+cmd是指定执行何种类型的操作，如F_GETFL，F_SETFL分别为获取和设置文件描述符的状态标志
+*/
+```
+
+##### 17.getsockopt/setsockopt 
+
+```cpp
+  /*getsockopt, setsockopt -- get and set options on sockets
+  获取或设置影响套接字的选项
+  getsockopt 把已获取的选项当前值存放到 optval 中。此时*optval 是一个整数。*optval 中返 回的值为 0 表示相应选项被禁止，不为 0 表示相应选项被启用
+– setsockopt 从 optval 中取得选项待设置的新值。不为 0 的*optval 值来启用选项，一个为 0 的*optval 值来禁止选项
+• optlen:指明 optval 所指结构的大小
+	*/
+int getsockopt(int socket, int level, int option_name,
+         void *restrict option_value, socklen_t *restrict option_len);
+
+int setsockopt(int socket, int level, int option_name,
+         const void *option_value, socklen_t option_len);
+```
+
